@@ -1,0 +1,159 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+
+const int potPin = A0;
+const int buton1Pin = 2;
+const int buton2Pin = 3;
+const int kirmiziPin = 9;
+const int yesilPin = 10;
+const int maviPin = 11;
+
+int potDeger;
+int menu = 0;
+bool ledAcik = false;
+int renk = 0;
+
+void setup() {
+  // LCD ve pin ayarlari
+  lcd.init();
+  lcd.backlight();
+
+  pinMode(buton1Pin, INPUT_PULLUP);
+  pinMode(buton2Pin, INPUT_PULLUP);
+
+  pinMode(kirmiziPin, OUTPUT);
+  pinMode(yesilPin, OUTPUT);
+  pinMode(maviPin, OUTPUT);
+
+  lcd.setCursor(0, 0);
+  lcd.print("Ana Menu");
+  delay(2000);
+  lcd.clear();
+  Serial.begin(9600);
+}
+
+void loop() {
+  Serial.println(potDeger);
+  
+  
+  if (ledAcik) {
+    if (digitalRead(buton2Pin) == LOW) {
+      ledKapat();
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Ana Menu");
+      delay(2000);
+      menu = 0;
+      ledAcik = false;
+    }
+  } else {
+    
+    potDeger = analogRead(potPin);
+    menuGoster(potDeger);
+
+  
+    if (digitalRead(buton1Pin) == LOW) {
+      ledKontrol(menu);
+    }
+  }
+}
+
+
+void menuGoster(int potDeger) {
+  if (potDeger >= 0 && potDeger <= 250) {
+    if (menu != 1) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Kirmizi");
+      menu = 1;
+    }
+  } else if (potDeger > 694 && potDeger <= 753) {
+    if (menu != 2) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Sari");
+      menu = 2;
+    }
+  } else if (potDeger > 754 && potDeger <= 820) {
+    if (menu != 3) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Mavi");
+      menu = 3;
+    }
+  } else if (potDeger > 825) {
+    if (menu != 4) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Yesil");
+      menu = 4;
+    }
+  }
+}
+
+
+void ledKontrol(int secim) {
+  lcd.clear();
+
+  switch (secim) {
+    case 1:
+      ledAc(1);
+      lcd.print("LED Kirmizi");
+      break;
+    case 2:
+      ledAc(2);
+      lcd.print("LED Sari");
+      break;
+    case 3:
+      ledAc(3);
+      lcd.print("LED Mavi");
+      break;
+    case 4:
+      ledAc(4);
+      lcd.print("LED Yesil");
+      break;
+  }
+
+  lcd.setCursor(0, 1);
+  lcd.print("Yaniyor");
+}
+
+void ledAc(int renkSecim) {
+  switch (renkSecim) {
+    case 1:
+      analogWrite(kirmiziPin, 255);
+      analogWrite(yesilPin, 0);
+      analogWrite(maviPin, 0);
+      break;
+    case 2:
+      analogWrite(kirmiziPin, 255);
+      analogWrite(yesilPin, 255);
+      analogWrite(maviPin, 0);
+      break;
+    case 3:
+      analogWrite(kirmiziPin, 0);
+      analogWrite(yesilPin, 0);
+      analogWrite(maviPin, 255);
+      break;
+    case 4:
+      analogWrite(kirmiziPin, 0);
+      analogWrite(yesilPin, 255);
+      analogWrite(maviPin, 0);
+      break;
+  }
+
+  ledAcik = true;
+  renk = renkSecim;
+}
+
+void ledKapat() {
+  analogWrite(kirmiziPin, 0);
+  analogWrite(yesilPin, 0);
+  analogWrite(maviPin, 0);
+  ledAcik = false;
+  renk = 0;
+}
